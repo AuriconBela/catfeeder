@@ -2,8 +2,8 @@
 #include <Servo.h>
 #include <RTClib.h>
 #include <LiquidCrystal.h>
-#include "Context.h"
-#include "StatesImplementation.h"
+#include "../include/Context.h"
+#include "../include/StatesImplementation.h"
 
 Servo feederServo;
 RTC_DS3231 rtc;

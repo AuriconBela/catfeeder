@@ -1,7 +1,7 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#include "State.h"
+#include "State.h" // Ensure State is defined before use
 
 class Context {
 public:
