@@ -3,16 +3,15 @@
 
 // --- NormalState ---
 void NormalState::enter(Context* ctx) {
-    lcd.clear();
-    lcd.print("Normal mode");
+    lcd.noDisplay(); // LCD csak proximity-ben aktív
 }
 void NormalState::update(Context* ctx) {
     DateTime now = rtc.now();
-    lcd.setCursor(0, 1);
-    lcd.print(now.hour());
-    lcd.print(":" );
-    if (now.minute() < 10) lcd.print("0");
-    lcd.print(now.minute());
+    // lcd.setCursor(0, 1);
+    // lcd.print(now.hour());
+    // lcd.print(":" );
+    // if (now.minute() < 10) lcd.print("0");
+    // lcd.print(now.minute());
     // Feeder times: 7:00, 12:00, 19:00
     if ((now.hour() == 7 || now.hour() == 12 || now.hour() == 19) && now.minute() == 0 && now.second() == 0) {
         ctx->setState(new RollupState());
@@ -42,10 +41,9 @@ void OpenState::update(Context* ctx) {}
 
 // --- RolldownState ---
 void RolldownState::enter(Context* ctx) {
-    lcd.clear();
-    lcd.print("Rolldown...");
+    lcd.noDisplay();
     feederServo.write(0);
-    ctx->setState(new NormalState());
+    // Átmenet proximity vagy normal state-be, ezt main.cpp dönti el proximity alapján
 }
 void RolldownState::update(Context* ctx) {}
 
@@ -94,4 +92,17 @@ void MinuteSetState::onButton2(Context* ctx) {
 }
 void MinuteSetState::onButton3(Context* ctx) {
     setMinute = (setMinute + 59) % 60;
+}
+
+// --- ProximityState ---
+void ProximityState::enter(Context* ctx) {
+    lcd.display();
+    lcd.clear();
+    lcd.print("Hello cat!");
+}
+void ProximityState::update(Context* ctx) {
+    // Itt lehetne animáció vagy info
+}
+void ProximityState::onButton1(Context* ctx) {
+    ctx->setState(new HourSetState());
 }

@@ -14,7 +14,15 @@ extern LiquidCrystal lcd;
 extern int button1Pin, button2Pin, button3Pin;
 
 // --- State Classes ---
+// Állapotok: normal, proximity, rollup, open, rolldown, hour set, minute set
 class NormalState : public State {
+public:
+    void enter(Context* ctx) override;
+    void update(Context* ctx) override;
+    void onButton1(Context* ctx) override;
+};
+
+class ProximityState : public State {
 public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
