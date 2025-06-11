@@ -1,13 +1,15 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <RTClib.h>
-#include <LiquidCrystal.h>
+#include <LiquidCrystal_I2C.h>
 #include "../include/Context.h"
 #include "../include/StatesImplementation.h"
 
+#define DebugMode true
+
 Servo feederServo;
 RTC_DS3231 rtc;
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+LiquidCrystal_I2C lcd(0x27, 16, 2); // 0x27 is a common I2C address, 16x2 display
 int button1Pin = 6, button2Pin = 7, button3Pin = 8;
 int proximityPin = 10;
 
@@ -16,7 +18,8 @@ bool lastProximity = false;
 
 void setup() {
     feederServo.attach(9);
-    lcd.begin(16, 2);
+    lcd.init(); // Use init() for LiquidCrystal_I2C
+    lcd.backlight(); // Optionally turn on backlight
     rtc.begin();
     pinMode(button1Pin, INPUT_PULLUP);
     pinMode(button2Pin, INPUT_PULLUP);
@@ -24,20 +27,27 @@ void setup() {
     pinMode(proximityPin, INPUT);
     lcd.noDisplay(); // LCD alapból kikapcsolva
     ctx.setState(new NormalState());
+    #ifdef DebugMode
+    Serial.begin(9600);
+    #endif    
 }
 
 void loop() {
     bool proximity = digitalRead(proximityPin) == HIGH; // vagy LOW, ha fordított a logika
+    #ifdef DebugMode
+    Serial.println("Proximity: " + String(proximity));
+    Serial.println(rtc.now().timestamp(DateTime::TIMESTAMP_FULL));
+    #endif      
     if (proximity && !lastProximity) {
         // Csak akkor lépjen proximity state-be, ha engedélyezett az átmenet
         State* s = ctx.getState();
-        if (dynamic_cast<NormalState*>(s) || dynamic_cast<RolldownState*>(s)) {
+        if (s->getType() == State::NORMAL || s->getType() == State::ROLLDOWN) {
             ctx.setState(new ProximityState());
         }
     } else if (!proximity && lastProximity) {
         // Csak akkor lépjen vissza normal state-be, ha proximity state-ben van
         State* s = ctx.getState();
-        if (dynamic_cast<ProximityState*>(s)) {
+        if (s->getType() == State::PROXIMITY) {
             ctx.setState(new NormalState());
         }
     }
@@ -55,5 +65,8 @@ void loop() {
         delay(200);
         ctx.onButton3();
     }
-    delay(50);
+    delay(1000);
+    #ifdef DebugMode
+    Serial.println("Current State: " + String(ctx.getState()->getType()));
+    #endif
 }
