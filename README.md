@@ -32,4 +32,12 @@ Az állapotok között csak előre meghatározott módon lehet váltani, a proxi
 ## Szoftver
 A projekt PlatformIO-val fordítható és tölthető fel az eszközre.
 
----
+## Állapotgép diagram
+
+A vezérlő állapotainak és átmeneteinek vizuális ábrázolása a `states_diagram.puml` PlantUML fájlban található. A diagramot PlantUML-kompatibilis eszközzel tudod megtekinteni vagy szerkeszteni.
+
+```
+@startuml catfeeder_states
+... (lásd states_diagram.puml a teljes forrásért) ...
+@enduml
+```

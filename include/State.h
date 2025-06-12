@@ -5,7 +5,7 @@ class Context;
 
 class State {
 public:
-    enum StateType { NORMAL, ROLLDOWN, PROXIMITY, 
+    enum StateType { NORMAL, ROLLDOWN, PROXIMITYSTATE, 
                      ROLLUP, OPEN, HOUR_SET, MINUTE_SET };
     virtual void enter(Context* ctx) {}
     virtual void update(Context* ctx) {}

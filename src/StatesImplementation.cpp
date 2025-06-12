@@ -17,9 +17,6 @@ void NormalState::update(Context* ctx) {
         ctx->setState(new RollupState());
     }
 }
-void NormalState::onButton1(Context* ctx) {
-    ctx->setState(new HourSetState());
-}
 
 // --- RollupState ---
 void RollupState::enter(Context* ctx) {
@@ -85,7 +82,7 @@ void MinuteSetState::update(Context* ctx) {
 }
 void MinuteSetState::onButton1(Context* ctx) {
     rtc.adjust(DateTime(rtc.now().year(), rtc.now().month(), rtc.now().day(), setHour, setMinute, 0));
-    ctx->setState(new NormalState());
+    ctx->setState(new ProximityState());
 }
 void MinuteSetState::onButton2(Context* ctx) {
     setMinute = (setMinute + 1) % 60;

@@ -2,6 +2,8 @@
 #include <Servo.h>
 #include <RTClib.h>
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+#include <APDS9930.h>
 #include "../include/Context.h"
 #include "../include/StatesImplementation.h"
 
@@ -11,8 +13,8 @@ Servo feederServo;
 RTC_DS3231 rtc;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // 0x27 is a common I2C address, 16x2 display
 int button1Pin = 6, button2Pin = 7, button3Pin = 8;
-int proximityPin = 10;
 
+APDS9930 apds = APDS9930();
 Context ctx;
 bool lastProximity = false;
 
@@ -21,10 +23,14 @@ void setup() {
     lcd.init(); // Use init() for LiquidCrystal_I2C
     lcd.backlight(); // Optionally turn on backlight
     rtc.begin();
+    Wire.begin();
+    apds.init();
+    apds.enableProximitySensor(false);
+
     pinMode(button1Pin, INPUT_PULLUP);
     pinMode(button2Pin, INPUT_PULLUP);
     pinMode(button3Pin, INPUT_PULLUP);
-    pinMode(proximityPin, INPUT);
+    
     lcd.noDisplay(); // LCD alapból kikapcsolva
     ctx.setState(new NormalState());
     #ifdef DebugMode
@@ -33,9 +39,13 @@ void setup() {
 }
 
 void loop() {
-    bool proximity = digitalRead(proximityPin) == HIGH; // vagy LOW, ha fordított a logika
+    uint16_t proxValue = 0;
+    apds.readProximity(proxValue);
+    bool proximity = (proxValue > 30); // Adjust threshold as needed
+    
     #ifdef DebugMode
-    Serial.println("Proximity: " + String(proximity));
+    Serial.print("Proximity: ");
+    Serial.println(proxValue);
     Serial.println(rtc.now().timestamp(DateTime::TIMESTAMP_FULL));
     #endif      
     if (proximity && !lastProximity) {
@@ -47,7 +57,7 @@ void loop() {
     } else if (!proximity && lastProximity) {
         // Csak akkor lépjen vissza normal state-be, ha proximity state-ben van
         State* s = ctx.getState();
-        if (s->getType() == State::PROXIMITY) {
+        if (s->getType() == State::PROXIMITYSTATE) {
             ctx.setState(new NormalState());
         }
     }

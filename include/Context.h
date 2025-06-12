@@ -6,7 +6,10 @@
 class Context {
 public:
     Context();
-    ~Context(); // Destructor declaration
+    ~Context(){
+        if (currentState) delete currentState;
+        currentState = nullptr;
+    }
     void setState(State* state);
     void update();
     void onButton1();
@@ -20,7 +23,3 @@ private:
 };
 
 #endif // CONTEXT_H
-
-Context::~Context() {
-    if (currentState) delete currentState;
-}

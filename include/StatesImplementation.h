@@ -19,7 +19,6 @@ class NormalState : public State {
 public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
-    void onButton1(Context* ctx) override;
     StateType getType() const override { return NORMAL; }
 };
 
@@ -28,7 +27,7 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     void onButton1(Context* ctx) override;
-    StateType getType() const override { return PROXIMITY; }
+    StateType getType() const override { return PROXIMITYSTATE; }
 };
 
 class RollupState : public State {

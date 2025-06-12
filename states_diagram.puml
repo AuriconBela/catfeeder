@@ -1,0 +1,21 @@
+@startuml catfeeder_states
+
+[*] --> NormalState
+NormalState --> RollupState : at 7:00, 12:00, 19:00 (minute=0, second=0)
+
+NormalState --> ProximityState : proximity detected
+
+RollupState --> OpenState : enter()
+OpenState --> RolldownState : after 5s
+RolldownState --> ProximityState : proximity detected (main.cpp)
+RolldownState --> NormalState : no proximity (main.cpp)
+
+HourSetState --> MinuteSetState : onButton1
+HourSetState --> HourSetState : onButton2/onButton3 (change hour)
+MinuteSetState --> ProximityState : onButton1 (save)
+MinuteSetState --> MinuteSetState : onButton2/onButton3 (change minute)
+
+ProximityState --> HourSetState : onButton1
+ProximityState --> NormalState : no proximity (main.cpp)
+
+@enduml
