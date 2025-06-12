@@ -17,35 +17,52 @@ int button1Pin = 6, button2Pin = 7, button3Pin = 8;
 APDS9930 apds = APDS9930();
 Context ctx;
 bool lastProximity = false;
+bool isProximityEnabled = false;
+bool isProximityInitialized = false;
 
 void setup() {
-    feederServo.attach(9);
-    lcd.init(); // Use init() for LiquidCrystal_I2C
-    lcd.backlight(); // Optionally turn on backlight
-    rtc.begin();
-    Wire.begin();
-    apds.init();
-    apds.enableProximitySensor(false);
+    #ifdef DebugMode
+    Serial.begin(9600);
+    while (!Serial) {
+        delay(10); // Wait for Serial to be ready
+    }    
+    #endif      
 
     pinMode(button1Pin, INPUT_PULLUP);
     pinMode(button2Pin, INPUT_PULLUP);
     pinMode(button3Pin, INPUT_PULLUP);
+
+    Wire.begin(); // Initialize I2C communication
+    // Initialize APDS-9930 (configure I2C and initial values)
+    isProximityInitialized = apds.init();
+
+    if (isProximityInitialized){
+        isProximityEnabled = apds.setProximityGain(PGAIN_2X) && apds.enableProximitySensor(false);
+    }
+  
+    feederServo.attach(9);
+    lcd.init(); // Use init() for LiquidCrystal_I2C
+    lcd.backlight(); // Optionally turn on backlight
+    rtc.begin();
     
     lcd.noDisplay(); // LCD alapból kikapcsolva
-    ctx.setState(new NormalState());
-    #ifdef DebugMode
-    Serial.begin(9600);
-    #endif    
+    ctx.setState(new NormalState()); 
 }
 
 void loop() {
-    uint16_t proxValue = 0;
-    apds.readProximity(proxValue);
-    bool proximity = (proxValue > 30); // Adjust threshold as needed
+    bool proximity = false; 
+    if (isProximityEnabled){
+        uint16_t proxValue = 0;
+        apds.readProximity(proxValue);
+        proximity = (proxValue > 100); // Adjust threshold as needed
+
+        #ifdef DebugMode
+        Serial.print("Proximity: ");
+        Serial.println(proxValue);
+        #endif            
+    }
     
     #ifdef DebugMode
-    Serial.print("Proximity: ");
-    Serial.println(proxValue);
     Serial.println(rtc.now().timestamp(DateTime::TIMESTAMP_FULL));
     #endif      
     if (proximity && !lastProximity) {
@@ -80,3 +97,5 @@ void loop() {
     Serial.println("Current State: " + String(ctx.getState()->getType()));
     #endif
 }
+
+
