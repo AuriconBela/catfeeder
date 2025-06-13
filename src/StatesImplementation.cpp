@@ -1,4 +1,5 @@
 #include "../include/StatesImplementation.h"
+#include "../include/Constants.h"
 #include <Wire.h>
 
 // --- NormalState ---
@@ -7,13 +8,15 @@ void NormalState::enter(Context* ctx) {
 }
 void NormalState::update(Context* ctx) {
     DateTime now = rtc.now();
-    // lcd.setCursor(0, 1);
-    // lcd.print(now.hour());
-    // lcd.print(":" );
-    // if (now.minute() < 10) lcd.print("0");
-    // lcd.print(now.minute());
-    // Feeder times: 7:00, 12:00, 19:00
-    if ((now.hour() == 7 || now.hour() == 12 || now.hour() == 19) && now.minute() == 0 && now.second() == 0) {
+    bool feedHour = false;
+    // Ellenőrizzük, hogy most van-e etetési idő
+    for (int i = 0; i < 3; ++i) {
+        if (now.hour() == Constants::FEED_HOURS[i]) {
+            feedHour = true;
+            break;
+        }
+    }
+    if (feedHour && now.minute() == 0 && now.second() == 0) {
         ctx->setState(new RollupState());
     }
 }
@@ -22,7 +25,7 @@ void NormalState::update(Context* ctx) {
 void RollupState::enter(Context* ctx) {
     lcd.clear();
     lcd.print("Rollup...");
-    feederServo.write(180);
+    feederServo.write(Constants::ROLLUP_ANGLE);
     ctx->setState(new OpenState());
 }
 void RollupState::update(Context* ctx) {}
@@ -31,7 +34,7 @@ void RollupState::update(Context* ctx) {}
 void OpenState::enter(Context* ctx) {
     lcd.clear();
     lcd.print("Open...");
-    delay(5000);
+    delay(Constants::OPEN_INTERVAL_IN_MILLIS); // Várakozás az etetésre
     ctx->setState(new RolldownState());
 }
 void OpenState::update(Context* ctx) {}
@@ -39,7 +42,7 @@ void OpenState::update(Context* ctx) {}
 // --- RolldownState ---
 void RolldownState::enter(Context* ctx) {
     lcd.noDisplay();
-    feederServo.write(0);
+    feederServo.write(Constants::ROLLDOWN_ANGLE);
     // Átmenet proximity vagy normal state-be, ezt main.cpp dönti el proximity alapján
 }
 void RolldownState::update(Context* ctx) {}

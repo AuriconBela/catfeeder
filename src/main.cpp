@@ -6,93 +6,91 @@
 #include <APDS9930.h>
 #include "../include/Context.h"
 #include "../include/StatesImplementation.h"
+#include "../include/ProximityTransitionManager.h"
+#include "../include/Constants.h"
 
-#define DebugMode true
+#define DebugMode Constants::DEBUG_MODE
 
 Servo feederServo;
 RTC_DS3231 rtc;
-LiquidCrystal_I2C lcd(0x27, 16, 2); // 0x27 is a common I2C address, 16x2 display
-int button1Pin = 6, button2Pin = 7, button3Pin = 8;
+LiquidCrystal_I2C lcd(Constants::LCD_ADDR, 
+                      Constants::LCD_COLS, 
+                      Constants::LCD_ROWS);
+int button1Pin = Constants::BUTTON1_PIN, 
+    button2Pin = Constants::BUTTON2_PIN, 
+    button3Pin = Constants::BUTTON3_PIN;
 
 APDS9930 apds = APDS9930();
 Context ctx;
 bool lastProximity = false;
 bool isProximityEnabled = false;
-bool isProximityInitialized = false;
+
+ProximityTransitionManager proximityManager;
 
 void setup() {
     #ifdef DebugMode
-    Serial.begin(9600);
+    Serial.begin(Constants::SERIAL_BAUD_RATE);
+    // Wait for Serial to be ready
     while (!Serial) {
-        delay(10); // Wait for Serial to be ready
+        delay(Constants::WAIT_TIME_IN_MILLIS); 
     }    
     #endif      
 
     pinMode(button1Pin, INPUT_PULLUP);
     pinMode(button2Pin, INPUT_PULLUP);
     pinMode(button3Pin, INPUT_PULLUP);
-
-    Wire.begin(); // Initialize I2C communication
+    // Initialize I2C communication
+    Wire.begin(); 
     // Initialize APDS-9930 (configure I2C and initial values)
-    isProximityInitialized = apds.init();
-
-    if (isProximityInitialized){
+    if (apds.init()){
         isProximityEnabled = apds.setProximityGain(PGAIN_2X) && apds.enableProximitySensor(false);
     }
   
-    feederServo.attach(9);
+    feederServo.attach(Constants::SERVO_PIN);
     lcd.init(); // Use init() for LiquidCrystal_I2C
     lcd.backlight(); // Optionally turn on backlight
     rtc.begin();
     
-    lcd.noDisplay(); // LCD alapból kikapcsolva
     ctx.setState(new NormalState()); 
 }
 
 void loop() {
-    bool proximity = false; 
-    if (isProximityEnabled){
+    bool proximity = false;
+    if (isProximityEnabled) {
         uint16_t proxValue = 0;
         apds.readProximity(proxValue);
-        proximity = (proxValue > 100); // Adjust threshold as needed
+        proximity = (proxValue > Constants::PROXIMITY_THRESHOLD);
 
         #ifdef DebugMode
         Serial.print("Proximity: ");
         Serial.println(proxValue);
-        #endif            
-    }
-    
-    #ifdef DebugMode
-    Serial.println(rtc.now().timestamp(DateTime::TIMESTAMP_FULL));
-    #endif      
-    if (proximity && !lastProximity) {
-        // Csak akkor lépjen proximity state-be, ha engedélyezett az átmenet
-        State* s = ctx.getState();
-        if (s->getType() == State::NORMAL || s->getType() == State::ROLLDOWN) {
+        #endif
+
+        proximityManager.updateBuffer(proximity);
+        ProximityTransitionManager::Transition transition = proximityManager.checkTransition(lastProximity, ctx.getState());
+        if (transition == ProximityTransitionManager::TO_PROXIMITY) {
             ctx.setState(new ProximityState());
-        }
-    } else if (!proximity && lastProximity) {
-        // Csak akkor lépjen vissza normal state-be, ha proximity state-ben van
-        State* s = ctx.getState();
-        if (s->getType() == State::PROXIMITYSTATE) {
+            lastProximity = true;
+        } else if (transition == ProximityTransitionManager::TO_NORMAL) {
             ctx.setState(new NormalState());
-        }
+            lastProximity = false;
+        }        
     }
-    lastProximity = proximity;
+
     ctx.update();
     if (digitalRead(button1Pin) == LOW) {
-        delay(200); // debounce
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton1();
     }
     if (digitalRead(button2Pin) == LOW) {
-        delay(200);
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton2();
     }
     if (digitalRead(button3Pin) == LOW) {
-        delay(200);
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton3();
     }
-    delay(1000);
+    delay(Constants::LOOP_END_DELAY);
     #ifdef DebugMode
     Serial.println("Current State: " + String(ctx.getState()->getType()));
     #endif
