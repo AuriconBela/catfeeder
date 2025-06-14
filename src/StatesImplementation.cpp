@@ -4,21 +4,33 @@
 
 // --- NormalState ---
 void NormalState::enter(Context* ctx) {
+    lcd.noBacklight();
     lcd.noDisplay(); // LCD csak proximity-ben aktív
 }
+
 void NormalState::update(Context* ctx) {
-    DateTime now = rtc.now();
-    bool feedHour = false;
     // Ellenőrizzük, hogy most van-e etetési idő
-    for (int i = 0; i < 3; ++i) {
-        if (now.hour() == Constants::FEED_HOURS[i]) {
-            feedHour = true;
-            break;
+    if (Constants::DEBUG_MODE && Constants::SERVO_DEBUG_MODE)
+    {
+        // Debug módban a gomb állapota határozza meg
+        if (digitalRead(Constants::SERVO_BUTTON_PIN)) {
+            ctx->setState(new RollupState());
+        }        
+    }
+    else 
+    {
+        DateTime now = rtc.now();
+        bool feedHour = false;        
+        for (int i = 0; i < 3; ++i) {
+            if (now.hour() == Constants::FEED_HOURS[i]) {
+                feedHour = true;
+                break;
+            }
         }
-    }
-    if (feedHour && now.minute() == 0 && now.second() == 0) {
-        ctx->setState(new RollupState());
-    }
+        if (feedHour && now.minute() == 0 && now.second() == 0) {
+            ctx->setState(new RollupState());
+        }        
+    }    
 }
 
 // --- RollupState ---
@@ -34,16 +46,20 @@ void RollupState::update(Context* ctx) {}
 void OpenState::enter(Context* ctx) {
     lcd.clear();
     lcd.print("Open...");
-    delay(Constants::OPEN_INTERVAL_IN_MILLIS); // Várakozás az etetésre
-    ctx->setState(new RolldownState());
+    startMillis = millis();
 }
-void OpenState::update(Context* ctx) {}
+
+void OpenState::update(Context* ctx) {
+    if (millis() - startMillis >= Constants::OPEN_INTERVAL_IN_MILLIS) {
+        ctx->setState(new RolldownState());
+    }
+}
 
 // --- RolldownState ---
 void RolldownState::enter(Context* ctx) {
     lcd.noDisplay();
     feederServo.write(Constants::ROLLDOWN_ANGLE);
-    // Átmenet proximity vagy normal state-be, ezt main.cpp dönti el proximity alapján
+    ctx->setState(new NormalState());
 }
 void RolldownState::update(Context* ctx) {}
 
@@ -98,11 +114,18 @@ void MinuteSetState::onButton3(Context* ctx) {
 void ProximityState::enter(Context* ctx) {
     lcd.display();
     lcd.clear();
-    lcd.print("Hello cat!");
+    lcd.backlight();
 }
+
 void ProximityState::update(Context* ctx) {
-    // Itt lehetne animáció vagy info
+    DateTime now = rtc.now();
+    lcd.setCursor(0, 1);
+    lcd.print(now.hour());
+    lcd.print(":");
+    if (now.minute() < 10) lcd.print("0");
+    lcd.print(now.minute());
 }
+
 void ProximityState::onButton1(Context* ctx) {
     ctx->setState(new HourSetState());
 }

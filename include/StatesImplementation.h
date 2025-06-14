@@ -42,6 +42,8 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     StateType getType() const override { return OPEN; }
+private:
+    unsigned long startMillis = 0;
 };
 
 class RolldownState : public State {

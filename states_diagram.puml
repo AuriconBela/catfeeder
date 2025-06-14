@@ -7,7 +7,6 @@ NormalState --> ProximityState : proximity detected
 
 RollupState --> OpenState : enter()
 OpenState --> RolldownState : after 5s
-RolldownState --> ProximityState : proximity detected (main.cpp)
 RolldownState --> NormalState : no proximity (main.cpp)
 
 HourSetState --> MinuteSetState : onButton1

@@ -12,18 +12,20 @@ public:
     // Pin numbers
     static constexpr int BUTTON1_PIN = 6;
     static constexpr int BUTTON2_PIN = 7;
-    static constexpr int BUTTON3_PIN = 8;
+    static constexpr int SERVO_BUTTON_PIN = 8;    
+    static constexpr int BUTTON3_PIN = 9;
     // Proximity
-    static constexpr int PROXIMITY_THRESHOLD = 100;
+    static constexpr int PROXIMITY_THRESHOLD = 200;
     static constexpr int PROXIMITY_BUFFER_SIZE = 3;
     // LCD
     static constexpr int LCD_ADDR = 0x27;
     static constexpr int LCD_COLS = 16;
     static constexpr int LCD_ROWS = 2;
     // Servo
-    static constexpr int SERVO_PIN = 9;
+    static constexpr int SERVO_PIN = 7;
     // Debug
-    static constexpr bool DEBUG_MODE = false;
+    static constexpr bool DEBUG_MODE = true;
+    static constexpr bool SERVO_DEBUG_MODE = true;
     // String constants
     static constexpr const char* MSG_PROXIMITY_SENSOR_FAIL = "Failed to initialize proximity sensor!";
     static constexpr const char* MSG_PROXIMITY_SENSOR_ENABLED = "Proximity sensor enabled.";

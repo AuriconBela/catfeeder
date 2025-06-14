@@ -10,15 +10,13 @@
 #include "../include/Constants.h"
 
 #define DebugMode Constants::DEBUG_MODE
+#define ServoDebugMode Constants::DEBUG_MODE && Constants::SERVO_DEBUG_MODE
 
 Servo feederServo;
 RTC_DS3231 rtc;
 LiquidCrystal_I2C lcd(Constants::LCD_ADDR, 
                       Constants::LCD_COLS, 
                       Constants::LCD_ROWS);
-int button1Pin = Constants::BUTTON1_PIN, 
-    button2Pin = Constants::BUTTON2_PIN, 
-    button3Pin = Constants::BUTTON3_PIN;
 
 APDS9930 apds = APDS9930();
 Context ctx;
@@ -36,9 +34,10 @@ void setup() {
     }    
     #endif      
 
-    pinMode(button1Pin, INPUT_PULLUP);
-    pinMode(button2Pin, INPUT_PULLUP);
-    pinMode(button3Pin, INPUT_PULLUP);
+    pinMode(Constants::BUTTON1_PIN, INPUT_PULLUP);
+    pinMode(Constants::BUTTON2_PIN, INPUT_PULLUP);
+    pinMode(Constants::BUTTON3_PIN, INPUT_PULLUP);
+    pinMode(Constants::SERVO_BUTTON_PIN, INPUT_PULLUP);
     // Initialize I2C communication
     Wire.begin(); 
     // Initialize APDS-9930 (configure I2C and initial values)
@@ -78,15 +77,15 @@ void loop() {
     }
 
     ctx.update();
-    if (digitalRead(button1Pin) == LOW) {
+    if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton1();
     }
-    if (digitalRead(button2Pin) == LOW) {
+    if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton2();
     }
-    if (digitalRead(button3Pin) == LOW) {
+    if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton3();
     }
