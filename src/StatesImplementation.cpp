@@ -37,7 +37,21 @@ void NormalState::update(Context* ctx) {
 void RollupState::enter(Context* ctx) {
     lcd.clear();
     lcd.print("Rollup...");
-    feederServo.write(Constants::ROLLUP_ANGLE);
+    int startAngle = Constants::ROLLDOWN_ANGLE;
+    int endAngle = Constants::ROLLUP_ANGLE;
+
+    unsigned long stepDelay = Constants::MOVE_INTERVAL_IN_MILLIS / abs(endAngle - startAngle);
+    if (startAngle < endAngle) {
+        for (int angle = startAngle; angle <= endAngle; ++angle) {
+            feederServo.write(angle);
+            delay(stepDelay);
+        }
+    } else {
+        for (int angle = startAngle; angle >= endAngle; --angle) {
+            feederServo.write(angle);
+            delay(stepDelay);
+        }
+    }
     ctx->setState(new OpenState());
 }
 void RollupState::update(Context* ctx) {}
@@ -58,7 +72,21 @@ void OpenState::update(Context* ctx) {
 // --- RolldownState ---
 void RolldownState::enter(Context* ctx) {
     lcd.noDisplay();
-    feederServo.write(Constants::ROLLDOWN_ANGLE);
+    int startAngle = Constants::ROLLUP_ANGLE;
+    int endAngle = Constants::ROLLDOWN_ANGLE;
+
+    unsigned long stepDelay = Constants::MOVE_INTERVAL_IN_MILLIS / abs(endAngle - startAngle);
+    if (startAngle < endAngle) {
+        for (int angle = startAngle; angle <= endAngle; ++angle) {
+            feederServo.write(angle);
+            delay(stepDelay);
+        }
+    } else {
+        for (int angle = startAngle; angle >= endAngle; --angle) {
+            feederServo.write(angle);
+            delay(stepDelay);
+        }
+    }
     ctx->setState(new NormalState());
 }
 void RolldownState::update(Context* ctx) {}

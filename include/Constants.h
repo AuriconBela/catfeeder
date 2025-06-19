@@ -32,9 +32,10 @@ public:
     static constexpr const char* MSG_PROXIMITY_SENSOR_INIT = "APDS-9930 Proximity Sensor Test";
     // Feeding data
     static constexpr int FEED_HOURS[3] = {7, 12, 19};
-    static constexpr int ROLLUP_ANGLE = 180;
-    static constexpr int ROLLDOWN_ANGLE = 0;
+    static constexpr int ROLLUP_ANGLE = 30;
+    static constexpr int ROLLDOWN_ANGLE = 180;
     static constexpr int OPEN_INTERVAL_IN_MILLIS = 5000;
+    static constexpr int MOVE_INTERVAL_IN_MILLIS = 2000;
 };
 
 #endif // CONSTANTS_H

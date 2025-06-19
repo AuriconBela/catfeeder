@@ -46,6 +46,7 @@ void setup() {
     }
   
     feederServo.attach(Constants::SERVO_PIN);
+    feederServo.write(Constants::ROLLDOWN_ANGLE); // Set initial position
     lcd.init(); // Use init() for LiquidCrystal_I2C
     lcd.backlight(); // Optionally turn on backlight
     rtc.begin();
