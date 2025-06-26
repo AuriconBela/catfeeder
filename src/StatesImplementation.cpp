@@ -2,6 +2,26 @@
 #include "../include/Constants.h"
 #include <Wire.h>
 
+namespace {
+    void moveServoSmooth(bool reverse) {
+        const float theta0 = Constants::ROLLUP_ANGLE;  // start angle
+        const float theta1 = Constants::ROLLDOWN_ANGLE; // end angle
+        const float T = Constants::MOVE_INTERVAL_IN_MILLIS * 0.001; // total duration in seconds
+        const float dt = Constants::MOVE_STEP_INTERVAL_IN_MILLIS * 0.001;      // step time in seconds
+        const int steps = T / dt;  
+
+        for (int i = 0; i <= steps; i++) {
+            float t = i * dt;
+            float s = 10 * pow(t/T, 3) - 15 * pow(t/T, 4) + 6 * pow(t/T, 5);
+            float theta = reverse
+                ? theta1 - s * (theta1 - theta0)
+                : theta0 + s * (theta1 - theta0);
+            feederServo.write(theta);
+            delay(dt * 1000);
+        }       
+    }
+}
+
 // --- NormalState ---
 void NormalState::enter(Context* ctx) {
     lcd.noBacklight();
@@ -13,8 +33,9 @@ void NormalState::update(Context* ctx) {
     if (Constants::DEBUG_MODE && Constants::SERVO_DEBUG_MODE)
     {
         // Debug módban a gomb állapota határozza meg
-        if (digitalRead(Constants::SERVO_BUTTON_PIN)) {
-            ctx->setState(new RollupState());
+        if (digitalRead(Constants::SERVO_BUTTON_PIN) == HIGH) {
+            Serial.println("Debug: Button pressed, rolling up feeder.");
+            ctx->setState(new RolldownState());
         }        
     }
     else 
@@ -28,7 +49,7 @@ void NormalState::update(Context* ctx) {
             }
         }
         if (feedHour && now.minute() == 0 && now.second() == 0) {
-            ctx->setState(new RollupState());
+            ctx->setState(new RolldownState());
         }        
     }    
 }
@@ -37,22 +58,10 @@ void NormalState::update(Context* ctx) {
 void RollupState::enter(Context* ctx) {
     lcd.clear();
     lcd.print("Rollup...");
-    int startAngle = Constants::ROLLDOWN_ANGLE;
-    int endAngle = Constants::ROLLUP_ANGLE;
 
-    unsigned long stepDelay = Constants::MOVE_INTERVAL_IN_MILLIS / abs(endAngle - startAngle);
-    if (startAngle < endAngle) {
-        for (int angle = startAngle; angle <= endAngle; ++angle) {
-            feederServo.write(angle);
-            delay(stepDelay);
-        }
-    } else {
-        for (int angle = startAngle; angle >= endAngle; --angle) {
-            feederServo.write(angle);
-            delay(stepDelay);
-        }
-    }
-    ctx->setState(new OpenState());
+    moveServoSmooth(true);
+
+    ctx->setState(new NormalState());
 }
 void RollupState::update(Context* ctx) {}
 
@@ -65,29 +74,17 @@ void OpenState::enter(Context* ctx) {
 
 void OpenState::update(Context* ctx) {
     if (millis() - startMillis >= Constants::OPEN_INTERVAL_IN_MILLIS) {
-        ctx->setState(new RolldownState());
+        ctx->setState(new RollupState());
     }
 }
 
 // --- RolldownState ---
 void RolldownState::enter(Context* ctx) {
     lcd.noDisplay();
-    int startAngle = Constants::ROLLUP_ANGLE;
-    int endAngle = Constants::ROLLDOWN_ANGLE;
 
-    unsigned long stepDelay = Constants::MOVE_INTERVAL_IN_MILLIS / abs(endAngle - startAngle);
-    if (startAngle < endAngle) {
-        for (int angle = startAngle; angle <= endAngle; ++angle) {
-            feederServo.write(angle);
-            delay(stepDelay);
-        }
-    } else {
-        for (int angle = startAngle; angle >= endAngle; --angle) {
-            feederServo.write(angle);
-            delay(stepDelay);
-        }
-    }
-    ctx->setState(new NormalState());
+    moveServoSmooth(false);  
+
+    ctx->setState(new OpenState());
 }
 void RolldownState::update(Context* ctx) {}
 

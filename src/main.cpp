@@ -24,7 +24,7 @@ bool lastProximity = false;
 bool isProximityEnabled = false;
 
 ProximityTransitionManager proximityManager;
-
+//https://github.com/Depau/APDS9930/issues/7
 void setup() {
     #ifdef DebugMode
     Serial.begin(Constants::SERIAL_BAUD_RATE);
@@ -37,7 +37,7 @@ void setup() {
     pinMode(Constants::BUTTON1_PIN, INPUT_PULLUP);
     pinMode(Constants::BUTTON2_PIN, INPUT_PULLUP);
     pinMode(Constants::BUTTON3_PIN, INPUT_PULLUP);
-    pinMode(Constants::SERVO_BUTTON_PIN, INPUT_PULLUP);
+    pinMode(Constants::SERVO_BUTTON_PIN, INPUT);
     // Initialize I2C communication
     Wire.begin(); 
     // Initialize APDS-9930 (configure I2C and initial values)
@@ -46,7 +46,7 @@ void setup() {
     }
   
     feederServo.attach(Constants::SERVO_PIN);
-    feederServo.write(Constants::ROLLDOWN_ANGLE); // Set initial position
+    feederServo.write(Constants::ROLLUP_ANGLE); // Set initial position
     lcd.init(); // Use init() for LiquidCrystal_I2C
     lcd.backlight(); // Optionally turn on backlight
     rtc.begin();
@@ -75,21 +75,25 @@ void loop() {
             ctx.setState(new NormalState());
             lastProximity = false;
         }        
+    } else {
+        #ifdef DebugMode
+        Serial.println(Constants::MSG_PROXIMITY_SENSOR_FAIL);
+        #endif
     }
 
     ctx.update();
-    if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
-        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-        ctx.onButton1();
-    }
-    if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
-        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-        ctx.onButton2();
-    }
-    if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
-        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-        ctx.onButton3();
-    }
+    // if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
+    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+    //     ctx.onButton1();
+    // }
+    // if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
+    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+    //     ctx.onButton2();
+    // }
+    // if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
+    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+    //     ctx.onButton3();
+    // }
     delay(Constants::LOOP_END_DELAY);
     #ifdef DebugMode
     Serial.println("Current State: " + String(ctx.getState()->getType()));
