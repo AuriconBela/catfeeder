@@ -3,6 +3,7 @@
 #include <Wire.h>
 
 namespace {
+    //This is a 5th-order polynomial (quintic), which ensures zero velocity and acceleration at both ends—thus finite jerk.
     void moveServoSmooth(bool reverse) {
         const float theta0 = Constants::ROLLUP_ANGLE;  // start angle
         const float theta1 = Constants::ROLLDOWN_ANGLE; // end angle

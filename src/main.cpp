@@ -37,7 +37,9 @@ void setup() {
     pinMode(Constants::BUTTON1_PIN, INPUT_PULLUP);
     pinMode(Constants::BUTTON2_PIN, INPUT_PULLUP);
     pinMode(Constants::BUTTON3_PIN, INPUT_PULLUP);
+    pinMode(Constants::BUTTON4_PIN, INPUT_PULLUP);
     pinMode(Constants::SERVO_BUTTON_PIN, INPUT);
+
     // Initialize I2C communication
     Wire.begin(); 
     // Initialize APDS-9930 (configure I2C and initial values)
@@ -54,7 +56,7 @@ void setup() {
     ctx.setState(new NormalState()); 
 }
 
-void loop() {
+void loop() {    
     bool proximity = false;
     if (isProximityEnabled) {
         uint16_t proxValue = 0;
@@ -82,18 +84,18 @@ void loop() {
     }
 
     ctx.update();
-    // if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
-    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-    //     ctx.onButton1();
-    // }
-    // if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
-    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-    //     ctx.onButton2();
-    // }
-    // if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
-    //     delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
-    //     ctx.onButton3();
-    // }
+    if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+        ctx.onButton1();
+    }
+    if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+        ctx.onButton2();
+    }
+    if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+        ctx.onButton3();
+    }
     delay(Constants::LOOP_END_DELAY);
     #ifdef DebugMode
     Serial.println("Current State: " + String(ctx.getState()->getType()));
