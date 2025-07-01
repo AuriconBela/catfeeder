@@ -22,8 +22,38 @@ APDS9930 apds = APDS9930();
 Context ctx;
 bool lastProximity = false;
 bool isProximityEnabled = false;
+bool skip = false;
 
 ProximityTransitionManager proximityManager;
+
+void handleProximityUpdate() {
+    bool proximity = false;
+    if (isProximityEnabled) {
+        uint16_t proxValue = 0;
+        apds.readProximity(proxValue);
+        proximity = (proxValue > Constants::PROXIMITY_THRESHOLD);
+
+        #ifdef DebugMode
+        Serial.print("Proximity: ");
+        Serial.println(proxValue);
+        #endif
+
+        proximityManager.updateBuffer(proximity);
+        ProximityTransitionManager::Transition transition = proximityManager.checkTransition(lastProximity, ctx.getState());
+        if (transition == ProximityTransitionManager::TO_PROXIMITY) {
+            ctx.setState(new ProximityState());
+            lastProximity = true;
+        } else if (transition == ProximityTransitionManager::TO_NORMAL) {
+            ctx.setState(new NormalState());
+            lastProximity = false;
+        }        
+    } else {
+        #ifdef DebugMode
+        Serial.println(Constants::MSG_PROXIMITY_SENSOR_FAIL);
+        #endif
+    }
+}
+
 //https://github.com/Depau/APDS9930/issues/7
 void setup() {
     #ifdef DebugMode
@@ -56,47 +86,57 @@ void setup() {
     ctx.setState(new NormalState()); 
 }
 
-void loop() {    
-    bool proximity = false;
-    if (isProximityEnabled) {
-        uint16_t proxValue = 0;
-        apds.readProximity(proxValue);
-        proximity = (proxValue > Constants::PROXIMITY_THRESHOLD);
-
-        #ifdef DebugMode
-        Serial.print("Proximity: ");
-        Serial.println(proxValue);
-        #endif
-
-        proximityManager.updateBuffer(proximity);
-        ProximityTransitionManager::Transition transition = proximityManager.checkTransition(lastProximity, ctx.getState());
-        if (transition == ProximityTransitionManager::TO_PROXIMITY) {
+void loop() {
+    // BUTTON4 ellenőrzése idle állapotba/onnan való ki/belépéshez
+    if (digitalRead(Constants::BUTTON4_PIN) == LOW) {
+        delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
+        if (ctx.getState()->getType() == State::IDLE) {
             ctx.setState(new ProximityState());
-            lastProximity = true;
-        } else if (transition == ProximityTransitionManager::TO_NORMAL) {
-            ctx.setState(new NormalState());
-            lastProximity = false;
-        }        
-    } else {
-        #ifdef DebugMode
-        Serial.println(Constants::MSG_PROXIMITY_SENSOR_FAIL);
-        #endif
+            skip = true;
+        } else {
+            if (ctx.getState()->getType() == State::PROXIMITYSTATE) {
+                ctx.setState(new IdleState());
+                skip = false;
+            }
+        }
     }
+    
+    // Ha idle állapotban vagyunk, nem csinálunk semmit
+    if (!skip){
+        if (ctx.getState()->getType() == State::IDLE) {
+            delay(ctx.getState()->getLoopDelay());
+            #ifdef DebugMode
+            Serial.println("Current State: IDLE");
+            #endif
+            return;
+        }
+    }
+
+    handleProximityUpdate();
 
     ctx.update();
     if (digitalRead(Constants::BUTTON1_PIN) == LOW) {
+        #ifdef DebugMode
+        Serial.println("Button 1 pressed");
+        #endif
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton1();
     }
     if (digitalRead(Constants::BUTTON2_PIN) == LOW) {
+        #ifdef DebugMode
+        Serial.println("Button 2 pressed");
+        #endif
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton2();
     }
     if (digitalRead(Constants::BUTTON3_PIN) == LOW) {
+        #ifdef DebugMode
+        Serial.println("Button 3 pressed");
+        #endif
         delay(Constants::DEBOUNCE_WAIT_IN_MILLIS); // debounce
         ctx.onButton3();
     }
-    delay(Constants::LOOP_END_DELAY);
+    delay(ctx.getState()->getLoopDelay());
     #ifdef DebugMode
     Serial.println("Current State: " + String(ctx.getState()->getType()));
     #endif

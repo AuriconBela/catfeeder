@@ -1,6 +1,7 @@
 #include "../include/StatesImplementation.h"
 #include "../include/Constants.h"
 #include <Wire.h>
+#include "StatesImplementation.h"
 
 namespace {
     //This is a 5th-order polynomial (quintic), which ensures zero velocity and acceleration at both ends—thus finite jerk.
@@ -96,12 +97,13 @@ void HourSetState::enter(Context* ctx) {
     setHour = now.hour();
     setMinute = now.minute();
     lcd.clear();
-    lcd.print("Set Hour: ");
+    lcd.print("Set hour: ");
     lcd.print(setHour);
 }
 void HourSetState::update(Context* ctx) {
     lcd.setCursor(0, 1);
     lcd.print("Hour: ");
+    if (setHour < 10) lcd.print("0");
     lcd.print(setHour);
 }
 void HourSetState::onButton1(Context* ctx) {
@@ -117,12 +119,13 @@ void HourSetState::onButton3(Context* ctx) {
 // --- MinuteSetState ---
 void MinuteSetState::enter(Context* ctx) {
     lcd.clear();
-    lcd.print("Set Minute: ");
+    lcd.print("Set minute: ");
     lcd.print(setMinute);
 }
 void MinuteSetState::update(Context* ctx) {
     lcd.setCursor(0, 1);
     lcd.print("Minute: ");
+    if (setMinute < 10) lcd.print("0");
     lcd.print(setMinute);
 }
 void MinuteSetState::onButton1(Context* ctx) {
@@ -154,4 +157,15 @@ void ProximityState::update(Context* ctx) {
 
 void ProximityState::onButton1(Context* ctx) {
     ctx->setState(new HourSetState());
+}
+
+// --- IdleState ---
+void IdleState::enter(Context* ctx) {
+    lcd.clear();
+    lcd.print("Idle mode");
+    lcd.noBacklight();
+}
+
+void IdleState::update(Context* ctx) {
+    // Idle állapotban nem csinálunk semmit
 }

@@ -7,8 +7,10 @@ public:
     static constexpr int SERIAL_BAUD_RATE = 9600;
     static constexpr int WAIT_TIME_IN_MILLIS = 10;
     // General settings
-    static constexpr int DEBOUNCE_WAIT_IN_MILLIS = 200;
-    static constexpr int LOOP_END_DELAY = 1000;
+    static constexpr unsigned int DEBOUNCE_WAIT_IN_MILLIS = 200;
+    static constexpr unsigned int LOOP_END_DELAY = 1000;
+    static constexpr unsigned int LOOP_END_DELAY_SHORT = 100;
+    static constexpr unsigned int IDLE_STATE_DELAY = 1000;    
     // Pin numbers
     static constexpr int BUTTON1_PIN = 5;
     static constexpr int BUTTON2_PIN = 6;

@@ -6,6 +6,7 @@
 #include <Servo.h>
 #include <RTClib.h>
 #include <LiquidCrystal_I2C.h>
+#include "Constants.h"
 
 // Forward declarations for hardware
 extern Servo feederServo;
@@ -20,6 +21,7 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     StateType getType() const override { return NORMAL; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY; }
 };
 
 class ProximityState : public State {
@@ -28,6 +30,15 @@ public:
     void update(Context* ctx) override;
     void onButton1(Context* ctx) override;
     StateType getType() const override { return PROXIMITYSTATE; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY; }
+};
+
+class IdleState : public State {
+public:
+    void enter(Context* ctx) override;
+    void update(Context* ctx) override;
+    StateType getType() const override { return IDLE; }
+    unsigned long getLoopDelay() const override { return Constants::IDLE_STATE_DELAY; }
 };
 
 class RollupState : public State {
@@ -35,6 +46,7 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     StateType getType() const override { return ROLLUP; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY; }
 };
 
 class OpenState : public State {
@@ -42,6 +54,7 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     StateType getType() const override { return OPEN; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY; }
 private:
     unsigned long startMillis = 0;
 };
@@ -51,6 +64,7 @@ public:
     void enter(Context* ctx) override;
     void update(Context* ctx) override;
     StateType getType() const override { return ROLLDOWN; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY; }
 };
 
 class HourSetState : public State {
@@ -61,6 +75,7 @@ public:
     void onButton2(Context* ctx) override;
     void onButton3(Context* ctx) override;
     StateType getType() const override { return HOUR_SET; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY_SHORT; }
 };
 
 class MinuteSetState : public State {
@@ -71,6 +86,7 @@ public:
     void onButton2(Context* ctx) override;
     void onButton3(Context* ctx) override;
     StateType getType() const override { return MINUTE_SET; }
+    unsigned long getLoopDelay() const override { return Constants::LOOP_END_DELAY_SHORT; }
 };
 
 #endif // STATES_IMPLEMENTATION_H
