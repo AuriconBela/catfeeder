@@ -9,8 +9,13 @@
 #include "../include/ProximityTransitionManager.h"
 #include "../include/Constants.h"
 
-#define DebugMode Constants::DEBUG_MODE
-#define ServoDebugMode Constants::DEBUG_MODE && Constants::SERVO_DEBUG_MODE
+#ifdef DEBUG_MODE
+#define DebugMode
+#endif
+
+#if defined(DEBUG_MODE) && defined(SERVO_DEBUG_MODE)
+#define ServoDebugMode
+#endif
 
 Servo feederServo;
 RTC_DS3231 rtc;

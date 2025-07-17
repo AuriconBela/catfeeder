@@ -2,6 +2,15 @@
 #include "../include/Constants.h"
 #include <Wire.h>
 #include "StatesImplementation.h"
+#include "../include/Constants.h"
+
+#ifdef DEBUG_MODE
+#define DebugMode
+#endif
+
+#if defined(DEBUG_MODE) && defined(SERVO_DEBUG_MODE)
+#define ServoDebugMode
+#endif
 
 namespace {
     //This is a 5th-order polynomial (quintic), which ensures zero velocity and acceleration at both ends—thus finite jerk.
@@ -22,6 +31,17 @@ namespace {
             delay(dt * 1000);
         }       
     }
+
+    int GetVoltageDividerValue() {
+        int rawValue = analogRead(Constants::VOLTAGE_DIVIDER_PIN);
+        float voltage = (rawValue / 1023.0) * 5.0; // Adjusted for 5.0V reference
+        float batteryVoltage = voltage * ((Constants::VOLTAGE_DIVIDER_RESISTOR_1 + Constants::VOLTAGE_DIVIDER_RESISTOR_2) / Constants::VOLTAGE_DIVIDER_RESISTOR_2);
+        #ifdef DebugMode
+        Serial.print("Voltage: ");
+        Serial.println(batteryVoltage);
+        #endif        
+        return round(100 * (batteryVoltage / 3.3) / 5.0) * 5;
+    }
 }
 
 // --- NormalState ---
@@ -32,28 +52,25 @@ void NormalState::enter(Context* ctx) {
 
 void NormalState::update(Context* ctx) {
     // Ellenőrizzük, hogy most van-e etetési idő
-    if (Constants::DEBUG_MODE && Constants::SERVO_DEBUG_MODE)
-    {
-        // Debug módban a gomb állapota határozza meg
-        if (digitalRead(Constants::SERVO_BUTTON_PIN) == HIGH) {
-            Serial.println("Debug: Button pressed, rolling up feeder.");
-            ctx->setState(new RolldownState());
-        }        
-    }
-    else 
-    {
-        DateTime now = rtc.now();
-        bool feedHour = false;        
-        for (int i = 0; i < 3; ++i) {
-            if (now.hour() == Constants::FEED_HOURS[i]) {
-                feedHour = true;
-                break;
-            }
+    #ifdef ServoDebugMode
+    // Debug módban a gomb állapota határozza meg
+    if (digitalRead(Constants::SERVO_BUTTON_PIN) == HIGH) {
+        Serial.println("Debug: Button pressed, rolling up feeder.");
+        ctx->setState(new RolldownState());
+    }        
+    #else
+    DateTime now = rtc.now();
+    bool feedHour = false;        
+    for (int i = 0; i < 3; ++i) {
+        if (now.hour() == Constants::FEED_HOURS[i]) {
+            feedHour = true;
+            break;
         }
-        if (feedHour && now.minute() == 0 && now.second() == 0) {
-            ctx->setState(new RolldownState());
-        }        
-    }    
+    }
+    if (feedHour && now.minute() == 0 && now.second() == 0) {
+        ctx->setState(new RolldownState());
+    }       
+    #endif  
 }
 
 // --- RollupState ---
@@ -153,6 +170,12 @@ void ProximityState::update(Context* ctx) {
     lcd.print(":");
     if (now.minute() < 10) lcd.print("0");
     lcd.print(now.minute());
+    
+    // Battery percentage in top right corner
+    int batteryPercent = GetVoltageDividerValue();
+    lcd.setCursor(12, 0);
+    lcd.print(batteryPercent);
+    lcd.print("%");
 }
 
 void ProximityState::onButton1(Context* ctx) {
