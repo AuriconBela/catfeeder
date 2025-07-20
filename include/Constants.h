@@ -17,7 +17,7 @@ public:
     static constexpr int SERVO_BUTTON_PIN = 10;    
     static constexpr int BUTTON3_PIN = 7;
     static constexpr int BUTTON4_PIN = 9;
-    static constexpr int VOLTAGE_DIVIDER_PIN = A5;
+    // static constexpr int VOLTAGE_DIVIDER_PIN = A5;
     // Proximity
     static constexpr int PROXIMITY_THRESHOLD = 150;
     static constexpr int PROXIMITY_BUFFER_SIZE = 3;
@@ -38,12 +38,14 @@ public:
     static constexpr int FEED_HOURS[3] = {7, 12, 19};
     static constexpr int ROLLUP_ANGLE = 30;
     static constexpr int ROLLDOWN_ANGLE = 160;
+    // static constexpr int ROLLUP_ANGLE = 160;
+    // static constexpr int ROLLDOWN_ANGLE = 30;    
     static constexpr int OPEN_INTERVAL_IN_MILLIS = 5000;
     static constexpr int MOVE_INTERVAL_IN_MILLIS = 2000;
     static constexpr int MOVE_STEP_INTERVAL_IN_MILLIS = 20;
     // Voltage divider
-    static constexpr float VOLTAGE_DIVIDER_RESISTOR_1 = 10000.0;
-    static constexpr float VOLTAGE_DIVIDER_RESISTOR_2 = 10000.0;
+    // static constexpr float VOLTAGE_DIVIDER_RESISTOR_1 = 10000.0;
+    // static constexpr float VOLTAGE_DIVIDER_RESISTOR_2 = 10000.0;
 };
 
 #endif // CONSTANTS_H

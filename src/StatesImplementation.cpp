@@ -32,16 +32,16 @@ namespace {
         }       
     }
 
-    int GetVoltageDividerValue() {
-        int rawValue = analogRead(Constants::VOLTAGE_DIVIDER_PIN);
-        float voltage = (rawValue / 1023.0) * 5.0; // Adjusted for 5.0V reference
-        float batteryVoltage = voltage * ((Constants::VOLTAGE_DIVIDER_RESISTOR_1 + Constants::VOLTAGE_DIVIDER_RESISTOR_2) / Constants::VOLTAGE_DIVIDER_RESISTOR_2);
-        #ifdef DebugMode
-        Serial.print("Voltage: ");
-        Serial.println(batteryVoltage);
-        #endif        
-        return round(100 * (batteryVoltage / 3.3) / 5.0) * 5;
-    }
+    // int GetVoltageDividerValue() {
+    //     int rawValue = analogRead(Constants::VOLTAGE_DIVIDER_PIN);
+    //     float voltage = (rawValue / 1023.0) * 5.0; // Adjusted for 5.0V reference
+    //     float batteryVoltage = voltage * ((Constants::VOLTAGE_DIVIDER_RESISTOR_1 + Constants::VOLTAGE_DIVIDER_RESISTOR_2) / Constants::VOLTAGE_DIVIDER_RESISTOR_2);
+    //     #ifdef DebugMode
+    //     Serial.print("Voltage: ");
+    //     Serial.println(batteryVoltage);
+    //     #endif        
+    //     return round(100 * (batteryVoltage / 3.3) / 5.0) * 5;
+    // }
 }
 
 // --- NormalState ---
@@ -171,11 +171,11 @@ void ProximityState::update(Context* ctx) {
     if (now.minute() < 10) lcd.print("0");
     lcd.print(now.minute());
     
-    // Battery percentage in top right corner
-    int batteryPercent = GetVoltageDividerValue();
-    lcd.setCursor(12, 0);
-    lcd.print(batteryPercent);
-    lcd.print("%");
+    // // Battery percentage in top right corner
+    // int batteryPercent = GetVoltageDividerValue();
+    // lcd.setCursor(12, 0);
+    // lcd.print(batteryPercent);
+    // lcd.print("%");
 }
 
 void ProximityState::onButton1(Context* ctx) {
